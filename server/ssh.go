@@ -9,6 +9,7 @@ import (
 	"jumpjump/util"
 	"log"
 	"net"
+	"strconv"
 )
 
 func StartSSH(addr string) {
@@ -17,14 +18,23 @@ func StartSSH(addr string) {
 		KeyboardInteractiveCallback: authKeyboard,
 		PublicKeyCallback:           authPrivateKeyfunc,
 	}
-
+	var err error
 	// 服务端密钥
 	{
-		k, err := parseKey("key")
-		if err != nil {
-			log.Fatalln("parse error:", err)
+		var keys []ssh.Signer
+		for {
+			keys, err = parseKey("key")
+			if err != nil {
+				log.Fatalln("parse error:", err)
+			}
+			if len(keys) == 0 {
+				genKey("key")
+			} else {
+				break
+			}
 		}
-		for _, v := range k {
+		log.Println("loading key: " + strconv.Itoa(len(keys)))
+		for _, v := range keys {
 			config.AddHostKey(v)
 		}
 	}
@@ -67,7 +77,7 @@ func handleChannels(sshConn *ssh.ServerConn, channels <-chan ssh.NewChannel) {
 
 		c.Term = term.NewTerminal(channel, "> ")
 
-		c.Term.Write([]byte(ansi.Color(fmt.Sprintf("\t jumpjumpGo - %s:%s\n", conf.Conf.MainVersion, conf.Conf.BuildVersion), "red")))
+		c.Term.Write([]byte(ansi.Color(fmt.Sprintf("\tjumpjumpGo - %s:%s\n", conf.Conf.MainVersion, conf.Conf.BuildVersion), "red")))
 		c.Term.Write([]byte(ansi.Color(c.ServerList(), "green")))
 
 		for req := range requests {

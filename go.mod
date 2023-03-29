@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/Rehtt/Kit v0.1.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
+	github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a
 	golang.org/x/crypto v0.7.0
 	golang.org/x/term v0.6.0
 	gorm.io/driver/sqlite v1.4.4
