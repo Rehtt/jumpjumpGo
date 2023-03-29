@@ -1,9 +1,9 @@
 package main
 
 import (
-	"jumpjump/conf"
-	"jumpjump/database"
-	"jumpjump/server"
+	"jumpjumpGo/conf"
+	"jumpjumpGo/database"
+	"jumpjumpGo/server"
 )
 
 var (

@@ -1,7 +1,7 @@
 package conf
 
 import (
-	"jumpjump/database"
+	"jumpjumpGo/database"
 )
 
 type Config struct {

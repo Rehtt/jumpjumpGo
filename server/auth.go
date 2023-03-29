@@ -6,8 +6,8 @@ import (
 	"github.com/Rehtt/Kit/util"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
-	"jumpjump/conf"
-	"jumpjump/database"
+	"jumpjumpGo/conf"
+	"jumpjumpGo/database"
 	"strconv"
 	"time"
 )

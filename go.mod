@@ -1,4 +1,4 @@
-module jumpjump
+module jumpjumpGo
 
 go 1.20
 
