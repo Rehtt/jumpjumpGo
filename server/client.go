@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	"github.com/mgutz/ansi"
+	"github.com/olekukonko/tablewriter"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
 	"jumpjumpGo/conf"
@@ -48,7 +48,12 @@ func (c *Client) HandleShell(channel ssh.Channel) {
 		case "exit":
 			channel.Close()
 		case "list":
-			c.Term.Write([]byte(ansi.Color(c.ServerList(), "green")))
+			//c.Term.Write([]byte(ansi.Color(c.ServerList(), "green")))
+			c.Term.Write([]byte(c.ServerListTable()))
+		case "add":
+		case "del":
+		case "change":
+
 		default:
 			index, _ := strconv.Atoi(line)
 			server := c.GetServerByIndex(index)
@@ -66,6 +71,19 @@ func (c *Client) ServerList() string {
 	for i, v := range c.UserServer {
 		tmp.WriteString(fmt.Sprintf("\t%d   %s:%d\n", i+1, v.Server.Ip, v.Server.Port))
 	}
+	return tmp.String()
+}
+func (c *Client) ServerListTable() string {
+	var tmp strings.Builder
+	table := tablewriter.NewWriter(&tmp)
+	table.SetColWidth(1)
+	table.SetHeader([]string{"ID", "Alias", "IP", "Port"})
+	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetCenterSeparator("|")
+	for i, v := range c.UserServer {
+		table.Append([]string{strconv.Itoa(i), "", v.Server.Ip, strconv.Itoa(v.Server.Port)})
+	}
+	table.Render()
 	return tmp.String()
 }
 func (c *Client) GetServerByIndex(i int) *database.UserServer {

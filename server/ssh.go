@@ -14,7 +14,7 @@ import (
 
 func StartSSH(addr string) {
 	config := &ssh.ServerConfig{
-		ServerVersion:               "SSH-2.0-jumpjumpGo",
+		ServerVersion:               conf.Conf.SSHServerVersion,
 		KeyboardInteractiveCallback: authKeyboard,
 		PublicKeyCallback:           authPrivateKeyfunc,
 	}
@@ -79,6 +79,8 @@ func handleChannels(sshConn *ssh.ServerConn, channels <-chan ssh.NewChannel) {
 
 		c.Term.Write([]byte(ansi.Color(fmt.Sprintf("\tjumpjumpGo - %s:%s\n", conf.Conf.MainVersion, conf.Conf.BuildVersion), "red")))
 		c.Term.Write([]byte(ansi.Color(c.ServerList(), "green")))
+		// todo commands manager
+		c.Term.Write([]byte("\ncommands:\nlist\tadd\tdel\tchange\n"))
 
 		for req := range requests {
 			switch (<-requests).Type {
@@ -131,7 +133,6 @@ func handleChannels(sshConn *ssh.ServerConn, channels <-chan ssh.NewChannel) {
 
 			default:
 				log.Println(req.Type, string(req.Payload))
-
 			}
 			if req.WantReply {
 				req.Reply(true, nil)
@@ -165,7 +166,7 @@ func (s *SSHClient) jump(userChann ssh.Channel, w, h uint32) {
 func newSSHClient(remoteAddr, user string, auth ssh.AuthMethod) (remote *SSHClient, err error) {
 	config := &ssh.ClientConfig{
 		User:            user,
-		ClientVersion:   "SSH-2.0-jumpjumpGo",
+		ClientVersion:   conf.Conf.SSHClientVersion,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 	if auth != nil {
