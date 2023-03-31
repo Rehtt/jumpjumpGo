@@ -9,6 +9,7 @@ import (
 	"jumpjumpGo/conf"
 	"jumpjumpGo/database"
 	"jumpjumpGo/util"
+	"jumpjumpGo/util/i8n"
 	"os"
 	"strconv"
 	"strings"
@@ -23,7 +24,7 @@ func StartLocalCMD(ctx context.Context, ch context.CancelCauseFunc) {
 	defer term.Restore(fd, oldState)
 	term := NewTerm(util.NewRW(os.Stdin, os.Stdout), "> ")
 
-	term.WriteTerm("\nUser Management\n")
+	term.WriteTerm(i8n.Dictionary.CMD.Title)
 	term.WriteTerm("commands:\nlist\tadd\tdel\tchange\n")
 	for {
 		cmd, err := term.ReadLine()
