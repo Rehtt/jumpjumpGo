@@ -18,3 +18,9 @@ func IoCopy(dst io.Writer, src io.Reader) error {
 		}
 	}
 }
+func String(str *string) string {
+	if str == nil {
+		return ""
+	}
+	return *str
+}

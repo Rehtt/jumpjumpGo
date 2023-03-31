@@ -11,6 +11,7 @@ type User struct {
 	Password   string         `gorm:"column:password"`
 	PublicKeys JSON[[]string] `gorm:"column:public_keys;type:text"`
 	LastLogin  *time.Time
+	Servers    []*UserServer
 }
 
 func (User) TableName() string {

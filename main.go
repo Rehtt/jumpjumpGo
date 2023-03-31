@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
+	"jumpjumpGo/cmd"
 	"jumpjumpGo/conf"
 	"jumpjumpGo/database"
 	"jumpjumpGo/server"
+	"sync"
 )
 
 var (
@@ -19,5 +22,12 @@ func main() {
 	conf.Conf.DB = db
 	conf.Conf.BuildVersion = buildVersion
 	conf.Conf.MainVersion = mainVersion
-	server.StartSSH(":2220")
+
+	ctx, ch := context.WithCancelCause(context.Background())
+	var start sync.WaitGroup
+	start.Add(1)
+	go server.StartSSH(ctx, ":2220", &start)
+	start.Wait()
+
+	cmd.StartLocalCMD(ctx, ch)
 }

@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	github.com/Xuanwo/go-locale v1.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/liushuochen/gotable v0.0.0-20221119160816-1113793e7092 // indirect
@@ -22,4 +23,5 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.15 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 )

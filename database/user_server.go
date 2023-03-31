@@ -5,11 +5,12 @@ import "gorm.io/gorm"
 type UserServer struct {
 	gorm.Model
 	UserID        uint
-	ServerID      uint
-	Server        Server
 	LoginUserName string
 	LoginPassword *string
 	PrivateKey    *string
+	ServerAddr    string
+	ServerPort    string
+	Alias         string
 }
 
 func (UserServer) TableName() string {

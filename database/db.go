@@ -16,7 +16,6 @@ func OpenDB(path string) (*DB, error) {
 	}
 	db.AutoMigrate(
 		&User{},
-		&Server{},
 		&UserServer{},
 	)
 	return &DB{db}, nil

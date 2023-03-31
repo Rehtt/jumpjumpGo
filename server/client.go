@@ -2,27 +2,28 @@ package server
 
 import (
 	"fmt"
-	"github.com/olekukonko/tablewriter"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/term"
+	"jumpjumpGo/cmd"
 	"jumpjumpGo/conf"
 	"jumpjumpGo/database"
 	"log"
 	"strconv"
-	"strings"
 )
 
 type Client struct {
-	Term         *term.Terminal
+	*cmd.Term
 	windowWidth  int
 	windowHeight int
 	UserServer   []*database.UserServer
 	SSHClient    *SSHClient
+	user         *database.User
 }
 
 func NewClient(userId string) *Client {
 	c := new(Client)
 	conf.Conf.DB.Preload("Server").Where("user_id = ?", userId).Find(&c.UserServer)
+	c.user = new(database.User)
+	conf.Conf.DB.Where("id = ?", userId).Find(c.user)
 	return c
 }
 
@@ -48,12 +49,15 @@ func (c *Client) HandleShell(channel ssh.Channel) {
 		case "exit":
 			channel.Close()
 		case "list":
-			//c.Term.Write([]byte(ansi.Color(c.ServerList(), "green")))
-			c.Term.Write([]byte(c.ServerListTable()))
+			c.WriteTerm(c.ServerListTable())
 		case "add":
+			c.AddServer()
 		case "del":
+			index, _ := c.Interaction("ID")
+			c.DelServer(index)
 		case "change":
-
+			index, _ := c.Interaction("ID")
+			c.ChangeServer(index)
 		default:
 			index, _ := strconv.Atoi(line)
 			server := c.GetServerByIndex(index)
@@ -66,44 +70,8 @@ func (c *Client) HandleShell(channel ssh.Channel) {
 	}
 }
 
-func (c *Client) ServerList() string {
-	var tmp strings.Builder
-	for i, v := range c.UserServer {
-		tmp.WriteString(fmt.Sprintf("\t%d   %s:%d\n", i+1, v.Server.Ip, v.Server.Port))
-	}
-	return tmp.String()
-}
-func (c *Client) ServerListTable() string {
-	var tmp strings.Builder
-	table := tablewriter.NewWriter(&tmp)
-	table.SetColWidth(1)
-	table.SetHeader([]string{"ID", "Alias", "IP", "Port"})
-	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-	table.SetCenterSeparator("|")
-	for i, v := range c.UserServer {
-		table.Append([]string{strconv.Itoa(i), "", v.Server.Ip, strconv.Itoa(v.Server.Port)})
-	}
-	table.Render()
-	return tmp.String()
-}
-func (c *Client) GetServerByIndex(i int) *database.UserServer {
-	if i > len(c.UserServer) || i < 1 {
-		return nil
-	}
-	return c.UserServer[i-1]
-}
-
-func inArray(c *Client, cs []*Client) bool {
-	for _, v := range cs {
-		if c == v {
-			return true
-		}
-	}
-	return false
-}
-
 func (c *Client) handleJump(channel ssh.Channel, server *database.UserServer) {
-	addr := fmt.Sprintf("%s:%d", server.Server.Ip, server.Server.Port)
+	addr := fmt.Sprintf("%s:%s", server.ServerAddr, server.ServerPort)
 	var auth ssh.AuthMethod
 	if server.PrivateKey != nil {
 		var cert = []byte(*server.PrivateKey)
@@ -111,7 +79,7 @@ func (c *Client) handleJump(channel ssh.Channel, server *database.UserServer) {
 		if err == nil {
 			auth = ssh.PublicKeys(key)
 		} else if err.Error() == "ssh: this private key is passphrase protected" {
-			pass, err := c.Term.ReadPassword("This private key is passphrase protected, please enter the certificate password (the password will not be recorded):")
+			pass, err := c.Interaction("This private key is passphrase protected, please enter the certificate password (the password will not be recorded):")
 			if err != nil {
 				return
 			}
@@ -128,8 +96,7 @@ func (c *Client) handleJump(channel ssh.Channel, server *database.UserServer) {
 	}
 	remote, err := newSSHClient(addr, server.LoginUserName, auth)
 	if err != nil {
-		c.Term.Write([]byte("Cannot connect " + addr + "\n"))
-		fmt.Println(err)
+		c.WriteTerm("Cannot connect " + addr + "\n")
 		return
 	}
 	c.SSHClient = remote

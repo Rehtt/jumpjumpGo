@@ -1,18 +1,20 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"github.com/mgutz/ansi"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/term"
+	"jumpjumpGo/cmd"
 	"jumpjumpGo/conf"
 	"jumpjumpGo/util"
 	"log"
 	"net"
 	"strconv"
+	"sync"
 )
 
-func StartSSH(addr string) {
+func StartSSH(ctx context.Context, addr string, wg *sync.WaitGroup) {
 	config := &ssh.ServerConfig{
 		ServerVersion:               conf.Conf.SSHServerVersion,
 		KeyboardInteractiveCallback: authKeyboard,
@@ -44,6 +46,7 @@ func StartSSH(addr string) {
 		log.Fatalln("start ssh server error:", err)
 	}
 	log.Println("ssh server running")
+	wg.Done()
 	for {
 		conn, err := listen.Accept()
 		if err != nil {
@@ -75,12 +78,11 @@ func handleChannels(sshConn *ssh.ServerConn, channels <-chan ssh.NewChannel) {
 			continue
 		}
 
-		c.Term = term.NewTerminal(channel, "> ")
-
-		c.Term.Write([]byte(ansi.Color(fmt.Sprintf("\tjumpjumpGo - %s:%s\n", conf.Conf.MainVersion, conf.Conf.BuildVersion), "red")))
-		c.Term.Write([]byte(ansi.Color(c.ServerList(), "green")))
+		c.Term = cmd.NewTerm(channel, "> ")
+		c.WriteTerm(ansi.Color(fmt.Sprintf("    jumpjumpGo - %s:%s\n", conf.Conf.MainVersion, conf.Conf.BuildVersion), "red"))
+		c.WriteTerm(c.ServerListTable())
 		// todo commands manager
-		c.Term.Write([]byte("\ncommands:\nlist\tadd\tdel\tchange\n"))
+		c.WriteTerm("\ncommands:\nlist\tadd\tdel\tchange\n")
 
 		for req := range requests {
 			switch (<-requests).Type {
