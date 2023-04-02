@@ -3,13 +3,13 @@ package cmd
 import (
 	"context"
 	"errors"
+	"github.com/Rehtt/Kit/i18n"
 	"github.com/olekukonko/tablewriter"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
 	"jumpjumpGo/conf"
 	"jumpjumpGo/database"
 	"jumpjumpGo/util"
-	"jumpjumpGo/util/i8n"
 	"os"
 	"strconv"
 	"strings"
@@ -24,8 +24,8 @@ func StartLocalCMD(ctx context.Context, ch context.CancelCauseFunc) {
 	defer term.Restore(fd, oldState)
 	term := NewTerm(util.NewRW(os.Stdin, os.Stdout), "> ")
 
-	term.WriteTerm(i8n.Dictionary.CMD.Title)
-	term.WriteTerm("commands:\nlist\tadd\tdel\tchange\n")
+	term.WriteTerm(i18n.GetText("user manage"))
+	term.WriteTerm(i18n.GetText("commands:\nlist\tadd\tdel\tchange\n"))
 	for {
 		cmd, err := term.ReadLine()
 		if err != nil {
@@ -55,12 +55,12 @@ func addUser(term *Term) {
 		}
 	}()
 	for {
-		user.Username, err = term.Interaction("User Name")
+		user.Username, err = term.Interaction(i18n.GetText("User Name"))
 		if err != nil {
 			return
 		}
 		if user.Username == "" {
-			term.WriteTermColor("Please enter the correct user name\n", "red")
+			term.WriteTermColor(i18n.GetText("Please enter the correct user name\n"), "red")
 		} else {
 			if conf.Conf.DB.Where("username = ?", user.Username).First(&database.User{}).RowsAffected != 0 {
 				term.WriteTermColor("Duplicate user name\n", "red")
@@ -69,10 +69,10 @@ func addUser(term *Term) {
 			break
 		}
 	}
-	setPassword, _ := term.InteractionSelect("Set a password?", []string{"yes", "no", "exit"}, "yes")
+	setPassword, _ := term.InteractionSelect(i18n.GetText("Set a password?"), []string{"yes", "no", "exit"}, "yes")
 	if setPassword == "yes" {
 		for {
-			user.Password, _ = term.Interaction("password")
+			user.Password, _ = term.Interaction(i18n.GetText("password"))
 			if user.Password != "" {
 				break
 			}
@@ -80,16 +80,16 @@ func addUser(term *Term) {
 	} else if setPassword == "exit" {
 		return
 	}
-	setKey, _ := term.InteractionSelect("Set Public Key Certificate? (support multiple)", []string{"yes", "no", "exit"}, "no")
+	setKey, _ := term.InteractionSelect(i18n.GetText("Set Public Key Certificate? (support multiple)"), []string{"yes", "no", "exit"}, "no")
 	if setKey == "yes" {
 		for {
-			c, _ := term.Interaction("Public Key Certificate (Enter 'exit' exit)\n")
+			c, _ := term.Interaction(i18n.GetText("Public Key Certificate (Enter 'exit' exit)\n"))
 			if c == "exit" {
 				break
 			}
 			_, err = ssh.ParsePublicKey([]byte(c))
 			if err != nil {
-				term.WriteTermColor("Public Key Certificate Error\n", "red")
+				term.WriteTermColor(i18n.GetText("Public Key Certificate Error\n"), "red")
 				continue
 			}
 			user.PublicKeys.Data = append(user.PublicKeys.Data, c)
@@ -99,16 +99,16 @@ func addUser(term *Term) {
 	}
 	err = conf.Conf.DB.Create(user).Error
 	if err != nil {
-		term.WriteTermColor("DB Error: ", "red")
+		term.WriteTermColor(i18n.GetText("DB Error: "), "red")
 		return
 	}
-	term.WriteTermColor("Added successfully\n", "green")
+	term.WriteTermColor(i18n.GetText("Added successfully\n"), "green")
 }
 
 func userList() string {
 	var tmp strings.Builder
 	table := tablewriter.NewWriter(&tmp)
-	table.SetHeader([]string{"ID", "Name", "Number of assets owned", "Last Logon Time"})
+	table.SetHeader([]string{"ID", i18n.GetText("Name"), i18n.GetText("Number of assets owned"), i18n.GetText("Last Logon Time")})
 	table.SetHeaderColor(
 		tablewriter.Color(tablewriter.FgHiRedColor),
 		tablewriter.Color(tablewriter.FgHiRedColor),

@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/Rehtt/Kit/i18n"
 	"github.com/olekukonko/tablewriter"
 	"golang.org/x/crypto/ssh"
 	"jumpjumpGo/conf"
@@ -93,23 +94,23 @@ func (c *Client) AddServer() {
 	if err != nil {
 		return
 	}
-	password, err := c.Interaction("Login Password (Skip using certificate login)", true)
+	password, err := c.Interaction(i18n.GetText("Login Password (Skip using certificate login)"), true)
 	if err != nil {
 		return
 	}
 	if password == "" {
 		var priKey string
 		for {
-			priKey, err = c.Interaction("Private key content (encryption certificate needs to enter the key when logging in)")
+			priKey, err = c.Interaction(i18n.GetText("Private key content (encryption certificate needs to enter the key when logging in)"))
 			if err != nil {
 				return
 			}
 			if priKey == "" {
-				c.WriteTermColor("No login authentication\n", "blue")
+				c.WriteTermColor(i18n.GetText("No login authentication\n"), "blue")
 			} else {
 				_, err := ssh.ParsePrivateKey([]byte(priKey))
 				if err != nil && err.Error() != "ssh: this private key is passphrase protected" {
-					c.WriteTermColor("Bad Key Certificate\n", "red")
+					c.WriteTermColor(i18n.GetText("Bad Key Certificate\n"), "red")
 					continue
 				}
 				data.PrivateKey = &priKey
@@ -121,31 +122,31 @@ func (c *Client) AddServer() {
 	}
 	err = conf.Conf.DB.Save(data).Error
 	if err != nil {
-		err = errors.New("Database storage error: " + err.Error())
+		err = errors.New(i18n.GetText("Database storage error: ") + err.Error())
 		return
 	}
-	c.WriteTermColor("Added successfully\n", "green")
+	c.WriteTermColor(i18n.GetText("Added successfully\n"), "green")
 }
 
 func (c *Client) DelServer(index string) {
 	i, _ := strconv.Atoi(index)
 	server := c.GetServerByIndex(i)
 	if server == nil {
-		c.WriteTermColor("not find server\n", "red")
+		c.WriteTermColor(i18n.GetText("not find server\n"), "red")
 		return
 	}
 	err := conf.Conf.DB.Where("id = ?", server.ID).Delete(&database.UserServer{}).Error
 	if err != nil {
-		c.WriteTermColor("DB Error: "+err.Error(), "red")
+		c.WriteTermColor(i18n.GetText("DB Error: ")+err.Error(), "red")
 	}
-	c.WriteTermColor("Deleted successfully\n", "green")
+	c.WriteTermColor(i18n.GetText("Deleted successfully\n"), "green")
 }
 
 func (c *Client) ChangeServer(index string) {
 	i, _ := strconv.Atoi(index)
 	server := c.GetServerByIndex(i)
 	if server == nil {
-		c.WriteTermColor("not find server\n", "red")
+		c.WriteTermColor(i18n.GetText("not find server\n"), "red")
 		return
 	}
 	var err error
@@ -154,52 +155,52 @@ func (c *Client) ChangeServer(index string) {
 			c.WriteTermColor(err.Error(), "red")
 		}
 	}()
-	server.Alias, err = c.InteractionDefault(fmt.Sprintf("Alias (Original: %s)", server.Alias), server.Alias)
+	server.Alias, err = c.InteractionDefault(fmt.Sprintf(i18n.GetText("Alias (Original: %s)"), server.Alias), server.Alias)
 	if err != nil {
 		return
 	}
-	server.ServerAddr, err = c.InteractionDefault(fmt.Sprintf("Server Host or IP (Original: %s)", server.ServerAddr), server.ServerAddr)
+	server.ServerAddr, err = c.InteractionDefault(fmt.Sprintf(i18n.GetText("Server Host or IP (Original: %s)"), server.ServerAddr), server.ServerAddr)
 	if err != nil {
 		return
 	}
 
 	var port string
 	for {
-		port, err = c.InteractionDefault(fmt.Sprintf("Server Port (Original: %s)", server.ServerPort), server.ServerPort)
+		port, err = c.InteractionDefault(fmt.Sprintf(i18n.GetText("Server Port (Original: %s)"), server.ServerPort), server.ServerPort)
 		if err != nil {
 			return
 		}
 		portn, err := strconv.Atoi(server.ServerPort)
 		if err != nil || !(portn > 0 && portn < 0xffff) {
-			c.WriteTermColor("Incorrect port number\n", "red")
+			c.WriteTermColor(i18n.GetText("Incorrect port number\n"), "red")
 		} else {
 			server.ServerPort = port
 			break
 		}
 	}
 
-	server.LoginUserName, err = c.InteractionDefault(fmt.Sprintf("Login User (Original:%s)", server.LoginUserName), server.LoginUserName)
+	server.LoginUserName, err = c.InteractionDefault(fmt.Sprintf(i18n.GetText("Login User (Original:%s)"), server.LoginUserName), server.LoginUserName)
 	if err != nil {
 		return
 	}
 
-	password, err := c.InteractionDefault("Login Password (Skip using certificate login)", util.String(server.LoginPassword), true)
+	password, err := c.InteractionDefault(i18n.GetText("Login Password (Skip using certificate login)"), util.String(server.LoginPassword), true)
 	if err != nil {
 		return
 	}
 	if password == "" {
 		var priKey string
 		for {
-			priKey, err = c.InteractionDefault("Private key content (encryption certificate needs to enter the key when logging in)", util.String(server.PrivateKey))
+			priKey, err = c.InteractionDefault(i18n.GetText("Private key content (encryption certificate needs to enter the key when logging in)"), util.String(server.PrivateKey))
 			if err != nil {
 				return
 			}
 			if priKey == "" {
-				c.WriteTermColor("No login authentication\n", "blue")
+				c.WriteTermColor(i18n.GetText("No login authentication\n"), "blue")
 			} else {
 				_, err := ssh.ParsePrivateKey([]byte(priKey))
 				if err != nil && err.Error() != "ssh: this private key is passphrase protected" {
-					c.WriteTermColor("Bad Key Certificate\n", "red")
+					c.WriteTermColor(i18n.GetText("Bad Key Certificate\n"), "red")
 					continue
 				}
 				server.PrivateKey = &priKey
@@ -213,8 +214,8 @@ func (c *Client) ChangeServer(index string) {
 	}
 	err = conf.Conf.DB.Where("id = ?", server.ID).Updates(server).Error
 	if err != nil {
-		err = errors.New("Database storage error: " + err.Error())
+		err = errors.New(i18n.GetText("Database storage error: ") + err.Error())
 		return
 	}
-	c.WriteTermColor("Changed successfully\n", "green")
+	c.WriteTermColor(i18n.GetText("Changed successfully\n"), "green")
 }

@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/Rehtt/Kit/i18n"
 	"golang.org/x/crypto/ssh"
 	"jumpjumpGo/cmd"
 	"jumpjumpGo/conf"
@@ -64,7 +65,7 @@ func (c *Client) HandleShell(channel ssh.Channel) {
 			if server != nil {
 				c.handleJump(channel, server)
 			} else {
-				c.Term.Write([]byte("not find\n"))
+				c.Term.Write([]byte(i18n.GetText("not find\n")))
 			}
 		}
 	}
@@ -78,8 +79,8 @@ func (c *Client) handleJump(channel ssh.Channel, server *database.UserServer) {
 		key, err := ssh.ParsePrivateKey(cert)
 		if err == nil {
 			auth = ssh.PublicKeys(key)
-		} else if err.Error() == "ssh: this private key is passphrase protected" {
-			pass, err := c.Interaction("This private key is passphrase protected, please enter the certificate password (the password will not be recorded):")
+		} else if err.Error() == i18n.GetText("ssh: this private key is passphrase protected") {
+			pass, err := c.Interaction(i18n.GetText("This private key is passphrase protected, please enter the certificate password (the password will not be recorded):"))
 			if err != nil {
 				return
 			}
@@ -96,7 +97,7 @@ func (c *Client) handleJump(channel ssh.Channel, server *database.UserServer) {
 	}
 	remote, err := newSSHClient(addr, server.LoginUserName, auth)
 	if err != nil {
-		c.WriteTerm("Cannot connect " + addr + "\n")
+		c.WriteTerm(i18n.GetText("Cannot connect ") + addr + "\n")
 		return
 	}
 	c.SSHClient = remote

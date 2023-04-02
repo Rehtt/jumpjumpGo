@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"errors"
+	"github.com/Rehtt/Kit/i18n"
 	"github.com/Rehtt/Kit/util"
 	"golang.org/x/crypto/ssh"
 	"gorm.io/gorm"
@@ -26,7 +27,7 @@ func authKeyboard(conn ssh.ConnMetadata, client ssh.KeyboardInteractiveChallenge
 	var user database.User
 	err = db.Where("username = ? AND password = ?", username, password[0]).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errors.New("not user")
+		return nil, errors.New(i18n.GetText("not user"))
 	}
 	if err != nil {
 		return nil, err
@@ -45,7 +46,7 @@ func authPrivateKeyfunc(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissi
 	var user database.User
 	err := db.Where("username = ?", conn.User()).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errors.New("not user")
+		return nil, errors.New(i18n.GetText("not user"))
 	}
 	if err != nil {
 		return nil, err
@@ -66,5 +67,5 @@ func authPrivateKeyfunc(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissi
 			}, nil
 		}
 	}
-	return nil, errors.New("not user")
+	return nil, errors.New(i18n.GetText("not user"))
 }

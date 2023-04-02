@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"github.com/Rehtt/Kit/i18n"
 	"github.com/mgutz/ansi"
 	"golang.org/x/term"
 	"io"
@@ -34,7 +35,7 @@ func (t *Term) InteractionDefault(query string, defaultValue string, isPassword 
 }
 func (t *Term) InteractionSelect(query string, selectV []string, defaultValue string) (string, error) {
 	if !util.InStringArray(defaultValue, selectV) {
-		return "", errors.New("selectV not defaultValue")
+		return "", errors.New(i18n.GetText("selectV not defaultValue"))
 	}
 	query = fmt.Sprintf("%s [%s] (Default: %s)", query, strings.Join(selectV, "/"), defaultValue)
 	for {
