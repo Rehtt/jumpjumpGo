@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/Rehtt/Kit/i18n"
 	"github.com/olekukonko/tablewriter"
 	"golang.org/x/crypto/ssh"
@@ -24,7 +25,7 @@ func StartLocalCMD(ctx context.Context, ch context.CancelCauseFunc) {
 	defer term.Restore(fd, oldState)
 	term := NewTerm(util.NewRW(os.Stdin, os.Stdout), "> ")
 
-	term.WriteTerm(i18n.GetText("user manage"))
+	term.WriteTerm(i18n.GetText("user manage\n"))
 	term.WriteTerm(i18n.GetText("commands:\nlist\tadd\tdel\tchange\n"))
 	for {
 		cmd, err := term.ReadLine()
@@ -37,13 +38,104 @@ func StartLocalCMD(ctx context.Context, ch context.CancelCauseFunc) {
 		case "add":
 			addUser(term)
 		case "del":
+			delUser(term)
 		case "change":
-
+			changeUser(term)
 		case "exit":
 			ch(errors.New("jumpjumpGo shutdown"))
 			return
 		}
 	}
+}
+
+func changeUser(term *Term) {
+	var user = new(database.User)
+	var err error
+	defer func() {
+		if err != nil {
+			term.WriteTermColor(err.Error()+"\n", "red")
+		}
+	}()
+	id, err := term.Interaction(i18n.GetText("User ID"))
+	if err != nil {
+		return
+	}
+	err = conf.Conf.DB.Where("id  = ?", id).First(user).Error
+	if err != nil {
+		return
+	}
+
+	for {
+		user.Username, err = term.Interaction(fmt.Sprintf(i18n.GetText("User Name (Original: %s)"), user.Username))
+		if err != nil {
+			return
+		}
+		if user.Username == "" {
+			term.WriteTermColor(i18n.GetText("Please enter the correct user name\n"), "red")
+		} else {
+			if conf.Conf.DB.Where("username = ?", user.Username).First(&database.User{}).RowsAffected != 0 {
+				term.WriteTermColor("Duplicate user name\n", "red")
+				continue
+			}
+			break
+		}
+	}
+	setPassword, err := term.InteractionSelect(i18n.GetText("Set a password?"), []string{"yes", "no", "exit"}, "yes")
+	if err != nil {
+		return
+	}
+	if setPassword == "yes" {
+		for {
+			user.Password, _ = term.Interaction(i18n.GetText("password"))
+			if user.Password != "" {
+				break
+			}
+		}
+	} else if setPassword == "exit" {
+		return
+	}
+	setKey, err := term.InteractionSelect(i18n.GetText("Set Public Key Certificate? (support multiple)"), []string{"yes", "no", "exit"}, "no")
+	if err != nil {
+		return
+	}
+	if setKey == "yes" {
+		var c string
+		for {
+			c, err = term.Interaction(i18n.GetText("Public Key Certificate (Enter 'exit' exit)\n"))
+			if err != nil {
+				return
+			}
+			if c == "exit" {
+				break
+			}
+			_, err = ssh.ParsePublicKey([]byte(c))
+			if err != nil {
+				term.WriteTermColor(i18n.GetText("Public Key Certificate Error\n"), "red")
+				continue
+			}
+			user.PublicKeys.Data = append(user.PublicKeys.Data, c)
+		}
+	} else if setKey == "exit" {
+		return
+	}
+	err = conf.Conf.DB.Where("id = ?", id).Updates(user).Error
+	if err != nil {
+		term.WriteTermColor(i18n.GetText("DB Error: ")+err.Error(), "red")
+		return
+	}
+	term.WriteTermColor(i18n.GetText("Added successfully\n"), "green")
+}
+
+func delUser(term *Term) {
+	id, err := term.Interaction(i18n.GetText("User ID"))
+	if err != nil {
+		return
+	}
+	err = conf.Conf.DB.Where("id = ?", id).Delete(&database.User{}).Error
+	if err != nil {
+		term.WriteTermColor(i18n.GetText("DB Error: ")+err.Error(), "red")
+	}
+	term.WriteTermColor(i18n.GetText("Added successfully\n"), "green")
 }
 
 func addUser(term *Term) {
@@ -69,10 +161,16 @@ func addUser(term *Term) {
 			break
 		}
 	}
-	setPassword, _ := term.InteractionSelect(i18n.GetText("Set a password?"), []string{"yes", "no", "exit"}, "yes")
+	setPassword, err := term.InteractionSelect(i18n.GetText("Set a password?"), []string{"yes", "no", "exit"}, "yes")
+	if err != nil {
+		return
+	}
 	if setPassword == "yes" {
 		for {
-			user.Password, _ = term.Interaction(i18n.GetText("password"))
+			user.Password, err = term.Interaction(i18n.GetText("password"))
+			if err != nil {
+				return
+			}
 			if user.Password != "" {
 				break
 			}
@@ -80,10 +178,17 @@ func addUser(term *Term) {
 	} else if setPassword == "exit" {
 		return
 	}
-	setKey, _ := term.InteractionSelect(i18n.GetText("Set Public Key Certificate? (support multiple)"), []string{"yes", "no", "exit"}, "no")
+	setKey, err := term.InteractionSelect(i18n.GetText("Set Public Key Certificate? (support multiple)"), []string{"yes", "no", "exit"}, "no")
+	if err != nil {
+		return
+	}
 	if setKey == "yes" {
+		var c string
 		for {
-			c, _ := term.Interaction(i18n.GetText("Public Key Certificate (Enter 'exit' exit)\n"))
+			c, err = term.Interaction(i18n.GetText("Public Key Certificate (Enter 'exit' exit)\n"))
+			if err != nil {
+				return
+			}
 			if c == "exit" {
 				break
 			}
@@ -128,12 +233,12 @@ func userList() string {
 	if err != nil {
 		return "DB Error: " + err.Error()
 	}
-	for i, v := range users {
+	for _, v := range users {
 		var lastLogin string
 		if v.LastLogin != nil {
 			lastLogin = v.LastLogin.Format("2006-01-02 15:04:05")
 		}
-		table.Append([]string{strconv.Itoa(i + 1), v.Username, strconv.Itoa(len(v.Servers)), lastLogin})
+		table.Append([]string{strconv.Itoa(int(v.ID)), v.Username, strconv.Itoa(len(v.Servers)), lastLogin})
 	}
 	table.Render()
 	return tmp.String()

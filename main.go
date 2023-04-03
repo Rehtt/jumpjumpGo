@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/Rehtt/Kit/i18n"
+	"github.com/Xuanwo/go-locale"
 	"jumpjumpGo/cmd"
 	"jumpjumpGo/conf"
 	"jumpjumpGo/database"
@@ -15,6 +17,10 @@ var (
 )
 
 func main() {
+	lang, err := locale.Detect()
+	if err == nil {
+		i18n.SetLang(&lang)
+	}
 	db, err := database.OpenDB("db")
 	if err != nil {
 		panic(err)
