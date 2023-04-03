@@ -88,6 +88,7 @@ func changeUser(term *Term) {
 		for {
 			user.Password, _ = term.Interaction(i18n.GetText("password"))
 			if user.Password != "" {
+				user.Password = util.Bcrypt(user.Password)
 				break
 			}
 		}
@@ -135,6 +136,10 @@ func delUser(term *Term) {
 	if err != nil {
 		term.WriteTermColor(i18n.GetText("DB Error: ")+err.Error(), "red")
 	}
+	err = conf.Conf.DB.Where("user_id = ?", id).Delete(&database.UserServer{}).Error
+	if err != nil {
+		term.WriteTermColor(i18n.GetText("DB Error: ")+err.Error(), "red")
+	}
 	term.WriteTermColor(i18n.GetText("Added successfully\n"), "green")
 }
 
@@ -172,6 +177,7 @@ func addUser(term *Term) {
 				return
 			}
 			if user.Password != "" {
+				user.Password = util.Bcrypt(user.Password)
 				break
 			}
 		}

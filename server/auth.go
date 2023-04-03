@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"jumpjumpGo/conf"
 	"jumpjumpGo/database"
+	util2 "jumpjumpGo/util"
 	"strconv"
 	"time"
 )
@@ -25,12 +26,15 @@ func authKeyboard(conn ssh.ConnMetadata, client ssh.KeyboardInteractiveChallenge
 	}
 
 	var user database.User
-	err = db.Where("username = ? AND password = ?", username, password[0]).First(&user).Error
+	err = db.Where("username = ?", username).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New(i18n.GetText("not user"))
 	}
 	if err != nil {
 		return nil, err
+	}
+	if !util2.CheckBcrypt(user.Password, password[0]) {
+		return nil, errors.New(i18n.GetText("password error"))
 	}
 	user.LastLogin = util.TimeToPrt(time.Now())
 
