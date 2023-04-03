@@ -66,14 +66,14 @@ func changeUser(term *Term) {
 	}
 
 	for {
-		user.Username, err = term.Interaction(fmt.Sprintf(i18n.GetText("User Name (Original: %s)"), user.Username))
+		user.Username, err = term.InteractionDefault(fmt.Sprintf(i18n.GetText("User Name (Original: %s)"), user.Username), user.Username)
 		if err != nil {
 			return
 		}
 		if user.Username == "" {
 			term.WriteTermColor(i18n.GetText("Please enter the correct user name\n"), "red")
 		} else {
-			if conf.Conf.DB.Where("username = ?", user.Username).First(&database.User{}).RowsAffected != 0 {
+			if conf.Conf.DB.Where("username = ? AND id != ?", user.Username, id).First(&database.User{}).RowsAffected != 0 {
 				term.WriteTermColor("Duplicate user name\n", "red")
 				continue
 			}
@@ -109,7 +109,7 @@ func changeUser(term *Term) {
 			if c == "exit" {
 				break
 			}
-			_, err = ssh.ParsePublicKey([]byte(c))
+			_, _, _, _, err = ssh.ParseAuthorizedKey([]byte(c))
 			if err != nil {
 				term.WriteTermColor(i18n.GetText("Public Key Certificate Error\n"), "red")
 				continue
@@ -198,7 +198,7 @@ func addUser(term *Term) {
 			if c == "exit" {
 				break
 			}
-			_, err = ssh.ParsePublicKey([]byte(c))
+			_, _, _, _, err = ssh.ParseAuthorizedKey([]byte(c))
 			if err != nil {
 				term.WriteTermColor(i18n.GetText("Public Key Certificate Error\n"), "red")
 				continue
