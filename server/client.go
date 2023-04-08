@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/Rehtt/Kit/i18n"
 	"golang.org/x/crypto/ssh"
@@ -75,7 +76,7 @@ func (c *Client) handleJump(channel ssh.Channel, server *database.UserServer) {
 	addr := fmt.Sprintf("%s:%s", server.ServerAddr, server.ServerPort)
 	var auth ssh.AuthMethod
 	if server.PrivateKey != nil {
-		var cert = []byte(*server.PrivateKey)
+		cert, _ := base64.StdEncoding.DecodeString(*server.PrivateKey)
 		key, err := ssh.ParsePrivateKey(cert)
 		if err == nil {
 			auth = ssh.PublicKeys(key)

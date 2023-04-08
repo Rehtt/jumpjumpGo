@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/Rehtt/Kit/i18n"
@@ -101,14 +102,19 @@ func (c *Client) AddServer() {
 	if password == "" {
 		var priKey string
 		for {
-			priKey, err = c.Interaction(i18n.GetText("Private key content (encryption certificate needs to enter the key when logging in)"))
+			priKey, err = c.Interaction(i18n.GetText("Private key content, convert to base64 input (encryption certificate needs to enter the key when logging in)"))
 			if err != nil {
 				return
 			}
 			if priKey == "" {
 				c.WriteTermColor(i18n.GetText("No login authentication\n"), "blue")
 			} else {
-				_, err := ssh.ParsePrivateKey([]byte(priKey))
+				k, err := base64.StdEncoding.DecodeString(priKey)
+				if err != nil {
+					c.WriteTermColor(i18n.GetText("Bad Base64\n"), "red")
+					continue
+				}
+				_, err = ssh.ParsePrivateKey(k)
 				if err != nil && err.Error() != "ssh: this private key is passphrase protected" {
 					c.WriteTermColor(i18n.GetText("Bad Key Certificate\n"), "red")
 					continue
