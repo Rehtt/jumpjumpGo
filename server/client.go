@@ -81,7 +81,7 @@ func (c *Client) handleJump(channel ssh.Channel, server *database.UserServer) {
 		if err == nil {
 			auth = ssh.PublicKeys(key)
 		} else if err.Error() == i18n.GetText("ssh: this private key is passphrase protected") {
-			pass, err := c.Interaction(i18n.GetText("This private key is passphrase protected, please enter the certificate password (the password will not be recorded):"))
+			pass, err := c.Interaction(i18n.GetText("This private key is passphrase protected, please enter the certificate password (the password will not be recorded):"), true)
 			if err != nil {
 				return
 			}
