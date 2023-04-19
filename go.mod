@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/Rehtt/Kit v0.1.2-0.20230403012406-3a1e90048c2d
+	github.com/Xuanwo/go-locale v1.1.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a
 	github.com/olekukonko/tablewriter v0.0.5
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/Xuanwo/go-locale v1.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
