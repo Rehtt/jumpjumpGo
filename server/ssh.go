@@ -55,7 +55,7 @@ func StartSSH(ctx context.Context, addr string, wg *sync.WaitGroup) {
 		}
 		sshConn, chann, request, err := ssh.NewServerConn(conn, config)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 		// 处理请求
@@ -74,7 +74,7 @@ func handleChannels(sshConn *ssh.ServerConn, channels <-chan ssh.NewChannel) {
 		}
 		channel, requests, err := ch.Accept()
 		if err != nil {
-			log.Printf("Could not accept channel: %v", err)
+			log.Printf("Could not accept channel: %v\n", err)
 			continue
 		}
 
