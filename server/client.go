@@ -4,10 +4,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/Rehtt/Kit/i18n"
+	"github.com/Rehtt/jumpjumpGo/cmd"
+	"github.com/Rehtt/jumpjumpGo/conf"
+	"github.com/Rehtt/jumpjumpGo/database"
 	"golang.org/x/crypto/ssh"
-	"jumpjumpGo/cmd"
-	"jumpjumpGo/conf"
-	"jumpjumpGo/database"
 	"log"
 	"strconv"
 )

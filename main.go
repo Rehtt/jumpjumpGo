@@ -4,11 +4,11 @@ import (
 	"context"
 	"flag"
 	"github.com/Rehtt/Kit/i18n"
+	"github.com/Rehtt/jumpjumpGo/cmd"
+	"github.com/Rehtt/jumpjumpGo/conf"
+	"github.com/Rehtt/jumpjumpGo/database"
+	"github.com/Rehtt/jumpjumpGo/server"
 	"github.com/Xuanwo/go-locale"
-	"jumpjumpGo/cmd"
-	"jumpjumpGo/conf"
-	"jumpjumpGo/database"
-	"jumpjumpGo/server"
 	"sync"
 )
 

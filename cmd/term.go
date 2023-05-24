@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Rehtt/Kit/i18n"
+	"github.com/Rehtt/jumpjumpGo/util"
 	"github.com/mgutz/ansi"
 	"golang.org/x/term"
 	"io"
-	"jumpjumpGo/util"
 	"strings"
 )
 
